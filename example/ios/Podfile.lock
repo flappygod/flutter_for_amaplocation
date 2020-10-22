@@ -1,0 +1,33 @@
+PODS:
+  - AMapFoundation (1.6.4)
+  - AMapLocation (2.6.7):
+    - AMapFoundation (~> 1.6.4)
+  - Flutter (1.0.0)
+  - flutter_for_amaplocation (0.0.1):
+    - AMapLocation (~> 2.6.4)
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_for_amaplocation (from `.symlinks/plugins/flutter_for_amaplocation/ios`)
+
+SPEC REPOS:
+  trunk:
+    - AMapFoundation
+    - AMapLocation
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_for_amaplocation:
+    :path: ".symlinks/plugins/flutter_for_amaplocation/ios"
+
+SPEC CHECKSUMS:
+  AMapFoundation: 3638198dfa40be54648570c3520edefad288286b
+  AMapLocation: a46c30d9930d0f3a3bd21139d8f845d10ac3f01d
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  flutter_for_amaplocation: 8d3a35aea57d1b27306d2f589353cd85a55e9a1a
+
+PODFILE CHECKSUM: 8e679eca47255a8ca8067c4c67aab20e64cb974d
+
+COCOAPODS: 1.9.3
