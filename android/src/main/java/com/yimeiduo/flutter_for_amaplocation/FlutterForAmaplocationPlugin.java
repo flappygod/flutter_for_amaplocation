@@ -1,9 +1,14 @@
 package com.yimeiduo.flutter_for_amaplocation;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
@@ -19,11 +24,13 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.PluginRegistry;
 
 /**
  * FlutterForAmaplocationPlugin
  */
-public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler, ActivityAware {
+public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler,
+        ActivityAware, PluginRegistry.RequestPermissionsResultListener {
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -70,12 +77,14 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
     @Override
     public void onAttachedToActivity(ActivityPluginBinding binding) {
         activity = binding.getActivity();
+        binding.addRequestPermissionsResultListener(this);
         context = binding.getActivity().getApplicationContext();
     }
 
     @Override
     public void onReattachedToActivityForConfigChanges(ActivityPluginBinding binding) {
         activity = binding.getActivity();
+        binding.addRequestPermissionsResultListener(this);
         context = binding.getActivity().getApplicationContext();
     }
 
@@ -93,6 +102,11 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
     public void onMethodCall(@NonNull MethodCall call, @NonNull final Result result) {
         //初始化location
         if (call.method.equals("initLocation")) {
+            //这里以ACCESS_COARSE_LOCATION为例
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                //请求权限
+                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 10);
+            }
             //设置Apikey
             String apiKey = call.argument("apiKey");
             //设置Apikey
@@ -256,5 +270,8 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
         this.eventSink = null;
     }
 
-
+    @Override
+    public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        return false;
+    }
 }
