@@ -175,27 +175,34 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                 AMapLocationListener mLocationListener = new AMapLocationListener() {
                     @Override
                     public void onLocationChanged(AMapLocation aMapLocation) {
-                        //创建定位
-                        Location location = new Location();
-                        location.setLatitude(aMapLocation.getLatitude() + "");
-                        location.setLongitude(aMapLocation.getLongitude() + "");
-                        location.setCity(aMapLocation.getCity());
-                        location.setAdcode(aMapLocation.getAdCode());
-                        location.setAOIName(aMapLocation.getAoiName());
-                        location.setPOIName(aMapLocation.getPoiName());
-                        location.setDistrict(aMapLocation.getDistrict());
-                        location.setCountry(aMapLocation.getCountry());
-                        location.setNumber(aMapLocation.getStreetNum());
-                        location.setStreet(aMapLocation.getStreet());
-                        location.setFormattedAddress(aMapLocation.getAddress());
-                        location.setProvince(aMapLocation.getProvince());
-                        location.setCitycode(aMapLocation.getCityCode());
-                        Gson gson = new Gson();
-                        //成功
-                        String json = gson.toJson(location);
-                        //成功
-                        if (eventSink != null) {
-                            eventSink.success(json);
+                        if (aMapLocation.getErrorCode() == 0) {
+                            //创建定位
+                            Location location = new Location();
+                            location.setLatitude(aMapLocation.getLatitude() + "");
+                            location.setLongitude(aMapLocation.getLongitude() + "");
+                            location.setCity(aMapLocation.getCity());
+                            location.setAdcode(aMapLocation.getAdCode());
+                            location.setAOIName(aMapLocation.getAoiName());
+                            location.setPOIName(aMapLocation.getPoiName());
+                            location.setDistrict(aMapLocation.getDistrict());
+                            location.setCountry(aMapLocation.getCountry());
+                            location.setNumber(aMapLocation.getStreetNum());
+                            location.setStreet(aMapLocation.getStreet());
+                            location.setFormattedAddress(aMapLocation.getAddress());
+                            location.setProvince(aMapLocation.getProvince());
+                            location.setCitycode(aMapLocation.getCityCode());
+                            Gson gson = new Gson();
+                            //成功
+                            String json = gson.toJson(location);
+                            //成功
+                            if (eventSink != null) {
+                                eventSink.success(json);
+                            }
+                        } else {
+                            result.error(aMapLocation.getErrorCode() + "",
+                                    aMapLocation.getErrorInfo(),
+                                    aMapLocation.getLocationDetail());
+
                         }
                     }
                 };
