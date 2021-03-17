@@ -23,10 +23,9 @@ class FlutterForAmaplocation {
 
   //获取定位
   static Future<Location> getLocation(LocationOneceOption option) async {
-    final String jsonData =
-    await (_channel.invokeMethod('getLocation', option.toJson()) as FutureOr<String>);
+    final String? jsonData = await _channel.invokeMethod('getLocation', option.toJson()) ;
     //解析出数据
-    Location location = Location.fromJson(jsonDecode(jsonData));
+    Location location = Location.fromJson(jsonDecode(jsonData!));
     //返回数据
     return location;
   }
