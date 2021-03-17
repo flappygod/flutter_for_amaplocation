@@ -13,7 +13,7 @@ class FlutterForAmaplocation {
 
   //初始化定位
   static Future<bool> initLocation(String apiKey) async {
-    final String flag =
+    final String? flag =
     await _channel.invokeMethod('initLocation', {"apiKey": apiKey});
     if (flag == null || flag == '' || int.parse(flag) == 0) {
       return false;
@@ -24,7 +24,7 @@ class FlutterForAmaplocation {
   //获取定位
   static Future<Location> getLocation(LocationOneceOption option) async {
     final String jsonData =
-    await _channel.invokeMethod('getLocation', option.toJson());
+    await (_channel.invokeMethod('getLocation', option.toJson()) as FutureOr<String>);
     //解析出数据
     Location location = Location.fromJson(jsonDecode(jsonData));
     //返回数据
@@ -38,13 +38,13 @@ class FlutterForAmaplocation {
     //开始定位
     return _locationEventChannel
         .receiveBroadcastStream()
-        .map((result) => result as String)
-        .map((resultJson) => Location.fromJson(jsonDecode(resultJson)));
+        .map((result) => result as String?)
+        .map((resultJson) => Location.fromJson(jsonDecode(resultJson!)));
   }
 
   //停止更新位置信息
   static Future<bool> stopLocation() async {
-    final String flag = await _channel.invokeMethod('stopLocation');
+    final String? flag = await _channel.invokeMethod('stopLocation');
     if (flag == null || flag == '' || int.parse(flag) == 0) {
       return false;
     }
@@ -54,19 +54,19 @@ class FlutterForAmaplocation {
 
 //定位的位置
 class Location {
-  String longitude;
-  String province;
-  String latitude;
-  String street;
-  String aOIName;
-  String formattedAddress;
-  String city;
-  String citycode;
-  String district;
-  String adcode;
-  String number;
-  String country;
-  String pOIName;
+  String? longitude;
+  String? province;
+  String? latitude;
+  String? street;
+  String? aOIName;
+  String? formattedAddress;
+  String? city;
+  String? citycode;
+  String? district;
+  String? adcode;
+  String? number;
+  String? country;
+  String? pOIName;
 
   Location(
       {this.longitude,
@@ -126,19 +126,19 @@ class LocationAlwaysOption {
   static const int Hight_Accuracy = 3;
 
   //android/ios
-  int distanceFilter;
+  int? distanceFilter;
 
   //android
-  int locationMode;
+  int? locationMode;
 
   //android
-  int interval;
+  int? interval;
 
   //ios
-  bool locatingWithReGeocode;
+  bool? locatingWithReGeocode;
 
   //ios
-  bool allowsBackgroundLocationUpdates;
+  bool? allowsBackgroundLocationUpdates;
 
   LocationAlwaysOption(
       {this.distanceFilter: 200,
@@ -179,13 +179,13 @@ class LocationOneceOption {
   static const kCLLocationAccuracyKilometer = 5;
   static const kCLLocationAccuracyThreeKilometers = 6;
 
-  int locationType;
+  int? locationType;
 
   //定位的超时时间
-  int locationTimeout;
+  int? locationTimeout;
 
   //逆地理定位超时时间
-  int reGeocodeTimeout;
+  int? reGeocodeTimeout;
 
   LocationOneceOption(
       {this.locationType: 4,
