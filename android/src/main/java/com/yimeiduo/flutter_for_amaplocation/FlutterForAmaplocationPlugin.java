@@ -42,6 +42,9 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
     //当前activity
     private Activity activity;
 
+    //设置binding
+    private ActivityPluginBinding activityPluginBinding;
+
     //方法channel
     private MethodChannel channel;
 
@@ -70,32 +73,48 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        channel.setMethodCallHandler(null);
         context = null;
         activity = null;
     }
 
     @Override
-    public void onAttachedToActivity(ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-        binding.addRequestPermissionsResultListener(this);
-        context = binding.getActivity().getApplicationContext();
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        addBinding(binding);
     }
 
     @Override
-    public void onReattachedToActivityForConfigChanges(ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-        binding.addRequestPermissionsResultListener(this);
-        context = binding.getActivity().getApplicationContext();
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        addBinding(binding);
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
-        activity = null;
+
     }
 
     @Override
     public void onDetachedFromActivity() {
+        removeBinding();
+    }
+
+    //绑定关系
+    private void addBinding(ActivityPluginBinding binding) {
+        if (activityPluginBinding != null) {
+            activityPluginBinding.removeRequestPermissionsResultListener(this);
+        }
+        activity = binding.getActivity();
+        activityPluginBinding = binding;
+        activityPluginBinding.addRequestPermissionsResultListener(this);
+    }
+
+    //移除关系
+    private void removeBinding() {
+        if (activityPluginBinding != null) {
+            activityPluginBinding.removeRequestPermissionsResultListener(this);
+        }
         activity = null;
+        activityPluginBinding = null;
     }
 
     @Override
@@ -148,7 +167,7 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                                 result.success(json);
                             } else {
 
-                                result.error(aMapLocation.getErrorCode()+"",
+                                result.error(aMapLocation.getErrorCode() + "",
                                         aMapLocation.getErrorInfo(),
                                         aMapLocation.getLocationDetail());
                             }
@@ -256,23 +275,19 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                 //开始定位
                 mLocationClient.startLocation();
             } else {
-
                 result.error("-100", "not init location", "not init location");
             }
 
         }
         //获取location
         else if (call.method.equals("stopLocation")) {
-
             if (mLocationClient != null) {
                 //开始定位
                 mLocationClient.stopLocation();
                 //成功
                 result.success("1");
-
             } else {
                 result.error("-100", "not init location", "not init location");
-
             }
         } else {
             result.notImplemented();
