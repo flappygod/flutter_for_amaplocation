@@ -50,168 +50,157 @@
     if ([@"initLocation" isEqualToString:call.method]) {
         //获取地址
         NSString* apiKey=(NSString*)call.arguments[@"apiKey"];
-
+        
         //设置key
         [AMapServices sharedServices].apiKey =apiKey;
-
+        
+        //创建
+        _cllManager = [CLLocationManager new];
+        
         //管理器
         _manager=[[AMapLocationManager alloc]init];
         
-        //创建
-        if (_cllManager == nil) {
-            _cllManager = [CLLocationManager new];
-        }
-
         //设置代理
         _manager.delegate=self;
         
         //设置成功
         result(@"1");
+        
+        //返回
+        return;
     }
+    
+    //没有初始化
+    if(_cllManager==nil){
+        result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)-100] message:@"location not init" details:@"location not init"]);
+        return;
+    }
+    
     //单次定位获取位置信息
-    else if ([@"getLocation" isEqualToString:call.method]) {
+    if ([@"getLocation" isEqualToString:call.method]) {
         //请求“使用期间”使用定位服务
-        if (_cllManager != nil) {
-            [_cllManager requestWhenInUseAuthorization];
-        }
+        [_cllManager requestWhenInUseAuthorization];
         //管理器
-        if(_manager!=nil){
-            NSInteger locationType=((NSString*)call.arguments[@"locationType"]).integerValue;
-            CLLocationAccuracy type=0;
-            if(locationType==1)
-            {
-                type=kCLLocationAccuracyBestForNavigation;
-            }
-            if(locationType==2)
-            {
-                type=kCLLocationAccuracyBest;
-            }
-            if(locationType==3)
-            {
-                type=kCLLocationAccuracyNearestTenMeters;
-            }
-            if(locationType==4)
-            {
-                type=kCLLocationAccuracyHundredMeters;
-            }
-            if(locationType==5)
-            {
-                type=kCLLocationAccuracyKilometer;
-            }
-            if(locationType==6)
-            {
-                type=kCLLocationAccuracyThreeKilometers;
-            }
-            // 带逆地理信息的一次定位（返回坐标和地址信息）
-            [_manager setDesiredAccuracy:type];
-            //   定位超时时间，最低2s，此处设置为2s
-            _manager.locationTimeout =((NSString*)call.arguments[@"locationTimeout"]).integerValue;;
-            //   逆地理请求超时时间，最低2s，此处设置为2s
-            _manager.reGeocodeTimeout = ((NSString*)call.arguments[@"reGeocodeTimeout"]).integerValue;;
-            //防止循环引用
-            //定位
-            [_manager  requestLocationWithReGeocode:YES completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
-                if (error)
-                {
-                    if (error.code == AMapLocationErrorLocateFailed)
-                    {
-                        //抛出异常处理
-                        result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)error.code] message:error.description details:error.localizedDescription]);
-                        return;
-                    }
-                }
-                //设置
-                NSMutableDictionary* dic=[[NSMutableDictionary alloc]init];
-                //设置经纬度
-                if(location!=nil){
-                    dic[@"latitude"]=[NSString stringWithFormat:@"%f",location.coordinate.latitude];
-                    dic[@"longitude"]=[NSString stringWithFormat:@"%f",location.coordinate.longitude];
-                }
-                //设置
-                if(regeocode!=nil){
-                    ///格式化地址
-                    if(regeocode.formattedAddress!=nil)
-                        dic[@"formattedAddress"]=regeocode.formattedAddress;
-                    ///国家
-                    if(regeocode.country!=nil)
-                        dic[@"country"]=regeocode.country;
-                    ///省/直辖市
-                    if(regeocode.province!=nil)
-                        dic[@"province"]=regeocode.province;
-                    ///市
-                    if(regeocode.city!=nil)
-                        dic[@"city"]=regeocode.city;
-                    ///区
-                    if(regeocode.district!=nil)
-                        dic[@"district"]=regeocode.district;
-                    ///城市编码
-                    if(regeocode.citycode!=nil)
-                        dic[@"citycode"]=regeocode.citycode;
-                    ///城市编码
-                    if(regeocode.adcode!=nil)
-                        dic[@"adcode"]=regeocode.adcode;
-                    ///街道名称
-                    if(regeocode.street!=nil)
-                        dic[@"street"]=regeocode.street;
-                    ///门牌号
-                    if(regeocode.number!=nil)
-                        dic[@"number"]=regeocode.number;
-                    ///兴趣点名称
-                    if(regeocode.POIName!=nil)
-                        dic[@"POIName"]=regeocode.POIName;
-                    ///门牌号
-                    if(regeocode.AOIName!=nil)
-                        dic[@"AOIName"]=regeocode.AOIName;
-                }
-                //转换为字符串
-                NSString* json=[JsonTool DicToJSONString:dic];
-                //成功
-                result(json);
-            }];
-        }else{
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)-100] message:@"location not init" details:@"location not init"]);
+        NSInteger locationType=((NSString*)call.arguments[@"locationType"]).integerValue;
+        CLLocationAccuracy type=0;
+        if(locationType==1)
+        {
+            type=kCLLocationAccuracyBestForNavigation;
         }
+        if(locationType==2)
+        {
+            type=kCLLocationAccuracyBest;
+        }
+        if(locationType==3)
+        {
+            type=kCLLocationAccuracyNearestTenMeters;
+        }
+        if(locationType==4)
+        {
+            type=kCLLocationAccuracyHundredMeters;
+        }
+        if(locationType==5)
+        {
+            type=kCLLocationAccuracyKilometer;
+        }
+        if(locationType==6)
+        {
+            type=kCLLocationAccuracyThreeKilometers;
+        }
+        // 带逆地理信息的一次定位（返回坐标和地址信息）
+        [_manager setDesiredAccuracy:type];
+        //   定位超时时间，最低2s，此处设置为2s
+        _manager.locationTimeout =((NSString*)call.arguments[@"locationTimeout"]).integerValue;;
+        //   逆地理请求超时时间，最低2s，此处设置为2s
+        _manager.reGeocodeTimeout = ((NSString*)call.arguments[@"reGeocodeTimeout"]).integerValue;;
+        //防止循环引用
+        //定位
+        [_manager  requestLocationWithReGeocode:YES completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
+            if (error)
+            {
+                //抛出异常处理
+                result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)error.code]
+                                           message:error.description
+                                           details:error.localizedDescription]);
+                return;
+            }
+            //设置
+            NSMutableDictionary* dic=[[NSMutableDictionary alloc]init];
+            //设置经纬度
+            if(location!=nil){
+                dic[@"latitude"]=[NSString stringWithFormat:@"%f",location.coordinate.latitude];
+                dic[@"longitude"]=[NSString stringWithFormat:@"%f",location.coordinate.longitude];
+            }
+            //设置
+            if(regeocode!=nil){
+                ///格式化地址
+                if(regeocode.formattedAddress!=nil)
+                    dic[@"formattedAddress"]=regeocode.formattedAddress;
+                ///国家
+                if(regeocode.country!=nil)
+                    dic[@"country"]=regeocode.country;
+                ///省/直辖市
+                if(regeocode.province!=nil)
+                    dic[@"province"]=regeocode.province;
+                ///市
+                if(regeocode.city!=nil)
+                    dic[@"city"]=regeocode.city;
+                ///区
+                if(regeocode.district!=nil)
+                    dic[@"district"]=regeocode.district;
+                ///城市编码
+                if(regeocode.citycode!=nil)
+                    dic[@"citycode"]=regeocode.citycode;
+                ///城市编码
+                if(regeocode.adcode!=nil)
+                    dic[@"adcode"]=regeocode.adcode;
+                ///街道名称
+                if(regeocode.street!=nil)
+                    dic[@"street"]=regeocode.street;
+                ///门牌号
+                if(regeocode.number!=nil)
+                    dic[@"number"]=regeocode.number;
+                ///兴趣点名称
+                if(regeocode.POIName!=nil)
+                    dic[@"POIName"]=regeocode.POIName;
+                ///门牌号
+                if(regeocode.AOIName!=nil)
+                    dic[@"AOIName"]=regeocode.AOIName;
+            }
+            //转换为字符串
+            NSString* json=[JsonTool DicToJSONString:dic];
+            //成功
+            result(json);
+        }];
         
     }//单次定位获取位置信息
     else if ([@"startLocation" isEqualToString:call.method]) {
         //请求“使用期间”使用定位服务
-        if (_cllManager != nil) {
-            [_cllManager requestWhenInUseAuthorization];
-        }
+        [_cllManager requestWhenInUseAuthorization];
         //开始定位
-        if(_manager!=nil){
-            //设置
-            NSInteger  distanceFilter=((NSString*)call.arguments[@"distanceFilter"]).integerValue;
-            //设置
-            NSString*  locatingWithReGeocode=call.arguments[@"locatingWithReGeocode"];
-            //后台定位
-            NSString*  allowsBackgroundLocationUpdates=call.arguments[@"allowsBackgroundLocationUpdates"];
-            //设置代理
-            _manager.delegate = self;
-            //定位精度
-            _manager.distanceFilter = distanceFilter;
-            //是否你地理编码
-            _manager.locatingWithReGeocode = locatingWithReGeocode.boolValue;
-            //是否允许后台定位
-            _manager.allowsBackgroundLocationUpdates=allowsBackgroundLocationUpdates.boolValue;
-            //开始定位
-            [_manager startUpdatingLocation];
-        }else{
-            //成功
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)-100] message:@"location not init" details:@"location not init"]);
-        }
+        //设置
+        NSInteger  distanceFilter=((NSString*)call.arguments[@"distanceFilter"]).integerValue;
+        //设置
+        NSString*  locatingWithReGeocode=call.arguments[@"locatingWithReGeocode"];
+        //后台定位
+        NSString*  allowsBackgroundLocationUpdates=call.arguments[@"allowsBackgroundLocationUpdates"];
+        //设置代理
+        _manager.delegate = self;
+        //定位精度
+        _manager.distanceFilter = distanceFilter;
+        //是否你地理编码
+        _manager.locatingWithReGeocode = locatingWithReGeocode.boolValue;
+        //是否允许后台定位
+        _manager.allowsBackgroundLocationUpdates=allowsBackgroundLocationUpdates.boolValue;
+        //开始定位
+        [_manager startUpdatingLocation];
     }
     //停止定位获取信息
     else if ([@"stopLocation" isEqualToString:call.method]) {
         //停止定位
-        if(_manager!=nil){
-            //开始定位
-            [_manager stopUpdatingLocation];
-            //成功
-            result(@"1");
-        }else{
-            result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)-100] message:@"location not init" details:@"location not init"]);
-        }
+        [_manager stopUpdatingLocation];
+        //成功
+        result(@"1");
     }
     //没有实现该方法
     else{
