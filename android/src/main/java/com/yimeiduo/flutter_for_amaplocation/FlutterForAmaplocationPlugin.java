@@ -3,7 +3,6 @@ package com.yimeiduo.flutter_for_amaplocation;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
@@ -60,7 +59,10 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
     private EventChannel.EventSink eventSink;
 
     //声明AMapLocationClient类对象
-    public AMapLocationClient mLocationClient = null;
+    public AMapLocationClient locationClient = null;
+
+    //当前是否初始化
+    private boolean inited = false;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -130,191 +132,239 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             String apiKey = call.argument("apiKey");
             //设置Apikey
             AMapLocationClient.setApiKey(apiKey);
-            //初始化定位
-            mLocationClient = new AMapLocationClient(context);
+            //已经初始化了
+            inited = true;
             //成功
             result.success("1");
+            //成功
+            return;
+        }
+        //初始化
+        if (!inited) {
+            result.error("-100", "not init location", "not init location");
+            return;
         }
         //获取location
-        else if (call.method.equals("getLocation")) {
-            //初始化
-            if (mLocationClient == null) {
-                result.error("-100", "not init location", "not init location");
-                return;
-            }
+        if (call.method.equals("getLocation")) {
             //检查permission
             checkPermission(new PermissionListener() {
                 @Override
                 public void result(boolean flag) {
-                    if (flag) {
-                        //声明定位回调监听器
-                        AMapLocationListener mLocationListener = new AMapLocationListener() {
-                            @Override
-                            public void onLocationChanged(AMapLocation aMapLocation) {
-                                if (aMapLocation != null) {
-                                    if (aMapLocation.getErrorCode() == 0) {
-                                        //创建定位
-                                        Location location = new Location();
-                                        location.setLatitude(aMapLocation.getLatitude() + "");
-                                        location.setLongitude(aMapLocation.getLongitude() + "");
-                                        location.setCity(aMapLocation.getCity());
-                                        location.setAdcode(aMapLocation.getAdCode());
-                                        location.setAOIName(aMapLocation.getAoiName());
-                                        location.setPOIName(aMapLocation.getPoiName());
-                                        location.setDistrict(aMapLocation.getDistrict());
-                                        location.setCountry(aMapLocation.getCountry());
-                                        location.setNumber(aMapLocation.getStreetNum());
-                                        location.setStreet(aMapLocation.getStreet());
-                                        location.setFormattedAddress(aMapLocation.getAddress());
-                                        location.setProvince(aMapLocation.getProvince());
-                                        location.setCitycode(aMapLocation.getCityCode());
-                                        Gson gson = new Gson();
-                                        //成功
-                                        String json = gson.toJson(location);
-                                        //成功
-                                        result.success(json);
-                                    } else {
-                                        result.error(aMapLocation.getErrorCode() + "",
-                                                aMapLocation.getErrorInfo(),
-                                                aMapLocation.getLocationDetail());
-                                    }
-                                }
-                            }
-                        };
-                        //设置定位回调监听
-                        mLocationClient.setLocationListener(mLocationListener);
-                        //定位设置
-                        AMapLocationClientOption option = new AMapLocationClientOption();
-                        //高精度定位
-                        option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-                        //获取一次定位结果：
-                        //该方法默认为false。
-                        option.setOnceLocation(true);
-                        //获取最近3s内精度最高的一次定位结果：
-                        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，
-                        //setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
-                        option.setOnceLocationLatest(true);
-                        //设置
-                        mLocationClient.setLocationOption(option);
-                        //开始定位
-                        mLocationClient.startLocation();
-                    } else {
+                    if (!flag) {
                         result.error("-200", "没有获取到定位权限", "没有获取到定位权限");
+                        return;
                     }
+                    //距离设置
+                    int locationTimeout = call.argument("locationTimeout");
+                    //时间间隔
+                    int reGeocodeTimeout = call.argument("reGeocodeTimeout");
+                    //定位的模式
+                    int locationType = call.argument("locationType");
+                    //开始定位
+                    locationOnece(locationTimeout, reGeocodeTimeout, locationType, result);
                 }
             });
         }
         //获取location
         else if (call.method.equals("startLocation")) {
-            if (mLocationClient == null) {
-                result.error("-100", "not init location", "not init location");
-                return;
-            }
             checkPermission(new PermissionListener() {
                 @Override
                 public void result(boolean flag) {
-                    if (flag) {
-                        //声明定位回调监听器
-                        AMapLocationListener mLocationListener = new AMapLocationListener() {
-                            @Override
-                            public void onLocationChanged(AMapLocation aMapLocation) {
-                                if (aMapLocation.getErrorCode() == 0) {
-                                    //创建定位
-                                    Location location = new Location();
-                                    location.setLatitude(aMapLocation.getLatitude() + "");
-                                    location.setLongitude(aMapLocation.getLongitude() + "");
-                                    location.setCity(aMapLocation.getCity());
-                                    location.setAdcode(aMapLocation.getAdCode());
-                                    location.setAOIName(aMapLocation.getAoiName());
-                                    location.setPOIName(aMapLocation.getPoiName());
-                                    location.setDistrict(aMapLocation.getDistrict());
-                                    location.setCountry(aMapLocation.getCountry());
-                                    location.setNumber(aMapLocation.getStreetNum());
-                                    location.setStreet(aMapLocation.getStreet());
-                                    location.setFormattedAddress(aMapLocation.getAddress());
-                                    location.setProvince(aMapLocation.getProvince());
-                                    location.setCitycode(aMapLocation.getCityCode());
-                                    Gson gson = new Gson();
-                                    //成功
-                                    String json = gson.toJson(location);
-                                    //成功
-                                    if (eventSink != null) {
-                                        eventSink.success(json);
-                                    }
-                                } else {
-                                    result.error(aMapLocation.getErrorCode() + "",
-                                            aMapLocation.getErrorInfo(),
-                                            aMapLocation.getLocationDetail());
-
-                                }
-                            }
-                        };
-                        //设置定位回调监听
-                        mLocationClient.setLocationListener(mLocationListener);
-                        //定位设置
-                        AMapLocationClientOption option = new AMapLocationClientOption();
-
-                        //距离设置
-                        int distanceFilter = call.argument("distanceFilter");
-                        //时间间隔
-                        int interval = call.argument("interval");
-                        //定位的模式
-                        int locationMode = call.argument("locationMode");
-                        //设置定位模式
-                        if (locationMode == 1) {
-                            //高精度定位
-                            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
-                        } else if (locationMode == 2) {
-                            //高精度定位
-                            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
-                        } else if (locationMode == 3) {
-                            //高精度定位
-                            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
-                        }
-                        //设置定位的精度
-                        option.setDeviceModeDistanceFilter(distanceFilter);
-                        //时间间隔
-                        option.setInterval(interval * 1000);
-                        //获取一次定位结果：
-                        //该方法默认为false。
-                        option.setOnceLocation(false);
-                        //获取最近3s内精度最高的一次定位结果：
-                        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，
-                        //setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
-                        option.setOnceLocationLatest(false);
-                        //设置
-                        mLocationClient.setLocationOption(option);
-                        //开始定位
-                        mLocationClient.startLocation();
-                    } else {
+                    if (!flag) {
                         result.error("-200", "没有获取到定位权限", "没有获取到定位权限");
+                        return;
                     }
+                    //距离设置
+                    int distanceFilter = call.argument("distanceFilter");
+                    //时间间隔
+                    int interval = call.argument("interval");
+                    //定位的模式
+                    int locationMode = call.argument("locationMode");
+                    //开始定位
+                    locationStart(distanceFilter, interval, locationMode, result);
                 }
             });
         }
         //获取location
         else if (call.method.equals("stopLocation")) {
-            if (mLocationClient == null) {
-                result.error("-100", "not init location", "not init location");
-                return;
-            }
-            //结束定位
-            mLocationClient.stopLocation();
-            //成功
+            //停止定位
+            locationStop();
             result.success("1");
         } else {
             result.notImplemented();
         }
     }
 
+    //结束定位
+    private void locationStop() {
+        if (locationClient != null) {
+            locationClient.stopLocation();
+        }
+    }
+
+    //开始定位
+    private void locationStart(int distanceFilter,
+                               int interval,
+                               int locationMode,
+                               final Result result) {
+        if (locationClient == null) {
+            locationClient = new AMapLocationClient(context);
+        }
+        //声明定位回调监听器
+        AMapLocationListener mLocationListener = new AMapLocationListener() {
+            @Override
+            public void onLocationChanged(AMapLocation aMapLocation) {
+                if (aMapLocation.getErrorCode() == 0) {
+                    //创建定位
+                    Location location = new Location();
+                    location.setLatitude(aMapLocation.getLatitude() + "");
+                    location.setLongitude(aMapLocation.getLongitude() + "");
+                    location.setCity(aMapLocation.getCity());
+                    location.setAdcode(aMapLocation.getAdCode());
+                    location.setAOIName(aMapLocation.getAoiName());
+                    location.setPOIName(aMapLocation.getPoiName());
+                    location.setDistrict(aMapLocation.getDistrict());
+                    location.setCountry(aMapLocation.getCountry());
+                    location.setNumber(aMapLocation.getStreetNum());
+                    location.setStreet(aMapLocation.getStreet());
+                    location.setFormattedAddress(aMapLocation.getAddress());
+                    location.setProvince(aMapLocation.getProvince());
+                    location.setCitycode(aMapLocation.getCityCode());
+                    Gson gson = new Gson();
+                    //成功
+                    String json = gson.toJson(location);
+                    //成功
+                    if (eventSink != null) {
+                        eventSink.success(json);
+                    }
+                } else {
+                    result.error(aMapLocation.getErrorCode() + "",
+                            aMapLocation.getErrorInfo(),
+                            aMapLocation.getLocationDetail());
+
+                }
+            }
+        };
+        //设置定位回调监听
+        locationClient.setLocationListener(mLocationListener);
+        //定位设置
+        AMapLocationClientOption option = new AMapLocationClientOption();
+        //设置定位模式
+        if (locationMode == 1) {
+            //省电模式
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
+        } else if (locationMode == 2) {
+            //仅设备
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Device_Sensors);
+        } else if (locationMode == 3) {
+            //高精度定位
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        }
+        //设置定位的精度
+        option.setDeviceModeDistanceFilter(distanceFilter);
+        //时间间隔
+        option.setInterval(interval * 1000);
+        //获取一次定位结果：
+        //该方法默认为false。
+        option.setOnceLocation(false);
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，
+        //setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        option.setOnceLocationLatest(false);
+        //设置
+        locationClient.setLocationOption(option);
+        //开始定位
+        locationClient.startLocation();
+    }
+
+    //单次定位
+    private void locationOnece(int locationTimeout, int reGeocodeTimeout, int locationType, final Result result) {
+        //初始化定位
+        AMapLocationClient client = new AMapLocationClient(context);
+        //声明定位回调监听器
+        AMapLocationListener mLocationListener = new AMapLocationListener() {
+            @Override
+            public void onLocationChanged(AMapLocation aMapLocation) {
+                if (aMapLocation != null) {
+                    if (aMapLocation.getErrorCode() == 0) {
+                        //创建定位
+                        Location location = new Location();
+                        location.setLatitude(aMapLocation.getLatitude() + "");
+                        location.setLongitude(aMapLocation.getLongitude() + "");
+                        location.setCity(aMapLocation.getCity());
+                        location.setAdcode(aMapLocation.getAdCode());
+                        location.setAOIName(aMapLocation.getAoiName());
+                        location.setPOIName(aMapLocation.getPoiName());
+                        location.setDistrict(aMapLocation.getDistrict());
+                        location.setCountry(aMapLocation.getCountry());
+                        location.setNumber(aMapLocation.getStreetNum());
+                        location.setStreet(aMapLocation.getStreet());
+                        location.setFormattedAddress(aMapLocation.getAddress());
+                        location.setProvince(aMapLocation.getProvince());
+                        location.setCitycode(aMapLocation.getCityCode());
+                        Gson gson = new Gson();
+                        //成功
+                        String json = gson.toJson(location);
+                        //成功
+                        result.success(json);
+                    } else {
+                        result.error(aMapLocation.getErrorCode() + "",
+                                aMapLocation.getErrorInfo(),
+                                aMapLocation.getLocationDetail());
+                    }
+                }
+            }
+        };
+        //设置定位回调监听
+        client.setLocationListener(mLocationListener);
+        //定位设置
+        AMapLocationClientOption option = new AMapLocationClientOption();
+        //设置定位精度
+        if (locationType == 1) {
+            option.setDeviceModeDistanceFilter(100);
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        } else if (locationType == 2) {
+            option.setDeviceModeDistanceFilter(10);
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        } else if (locationType == 3) {
+            option.setDeviceModeDistanceFilter(10);
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+        } else if (locationType == 4) {
+            option.setDeviceModeDistanceFilter(100);
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
+        } else if (locationType == 5) {
+            option.setDeviceModeDistanceFilter(1000);
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
+        } else if (locationType == 6) {
+            option.setDeviceModeDistanceFilter(3000);
+            option.setLocationMode(AMapLocationClientOption.AMapLocationMode.Battery_Saving);
+        }
+        //定位超时时间
+        option.setGpsFirstTimeout(locationTimeout * 1000);
+        //逆地理编码
+        option.setHttpTimeOut(reGeocodeTimeout * 1000);
+        //获取一次定位结果：
+        //该方法默认为false。
+        option.setOnceLocation(true);
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，
+        //setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        option.setOnceLocationLatest(true);
+        //设置
+        client.setLocationOption(option);
+        //开始定位
+        client.startLocation();
+    }
+
     //检查权限
     private void checkPermission(PermissionListener listener) {
         int hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION);
+        //已经获取了权限
         if (hasPermission == PackageManager.PERMISSION_GRANTED) {
-            //已经获取了权限
             listener.result(true);
-        } else {
-            //权限监听
+        }
+        //监听权限结果
+        else {
             permissionListener = listener;
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, RequestPermissionCode);
         }
