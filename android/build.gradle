@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
-    api 'com.amap.api:location:5.2.0'
+    api 'com.amap.api:location:5.3.0'
+    api 'com.amap.api:search:7.7.0'
     api 'com.google.code.gson:gson:2.6.2'
 }

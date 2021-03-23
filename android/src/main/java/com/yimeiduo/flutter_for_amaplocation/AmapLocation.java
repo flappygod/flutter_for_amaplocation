@@ -1,6 +1,6 @@
 package com.yimeiduo.flutter_for_amaplocation;
 
-public class Location {
+public class AmapLocation {
     /**
      * longitude : 106.522971
      * province : 重庆市

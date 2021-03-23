@@ -13,7 +13,19 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
+import com.amap.api.services.core.LatLonPoint;
+import com.amap.api.services.core.PoiItem;
+import com.amap.api.services.poisearch.PoiResult;
+import com.amap.api.services.poisearch.PoiSearch;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
@@ -188,9 +200,155 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             //停止定位
             locationClient.stopLocation();
             result.success("1");
+        }
+        //获取location
+        else if (call.method.equals("searchKeyword")) {
+            //搜索关键字
+            String keywords = call.argument("keywords");
+            //搜索城市名称
+            String types = call.argument("types");
+            //搜索城市名称
+            String city = call.argument("city");
+            //搜索城市名称
+            int page = call.argument("page");
+            //搜索城市名称
+            int size = call.argument("size");
+            //搜索城市名称
+            boolean cityLimit = call.argument("cityLimit");
+            //搜索poi数据
+            PoiSearch.Query query = new PoiSearch.Query(keywords, types, city);
+            //设置每页大小
+            query.setPageSize(size);
+            //设置当前页码
+            query.setPageNum(page);
+            //限制城市
+            query.setCityLimit(cityLimit);
+            //创建搜索
+            PoiSearch poiSearch = new PoiSearch(context, query);
+            //设置监听
+            poiSearch.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
+                @Override
+                public void onPoiSearched(PoiResult poiResult, int i) {
+                    //数据
+                    ArrayList<PoiItem> poiItems = poiResult.getPois();
+                    List<AmapPoi> pois = new ArrayList<>();
+                    if (poiItems != null)
+                        for (PoiItem item : poiItems) {
+                            AmapPoi poi = new AmapPoi();
+                            poi.setLat(item.getLatLonPoint().getLatitude());
+                            poi.setLng(item.getLatLonPoint().getLongitude());
+                            poi.setUid(item.getPoiId());
+                            poi.setName(item.getTitle());
+                            poi.setType(item.getTypeDes());
+                            poi.setTypecode(item.getTypeCode());
+                            poi.setAddress(item.getSnippet());
+                            poi.setTel(item.getTel());
+                            poi.setDistance(item.getDistance() + "");
+                            poi.setPostcode(item.getPostcode());
+                            poi.setWebsite(item.getWebsite());
+                            poi.setEmail(item.getEmail());
+                            poi.setProvince(item.getProvinceName());
+                            poi.setPcode(item.getProvinceCode());
+                            poi.setCity(item.getCityName());
+                            poi.setCitycode(item.getCityCode());
+                            poi.setDistrict(item.getAdName());
+                            poi.setAdcode(item.getAdCode());
+                            pois.add(poi);
+                        }
+                    result.success(modelToString(pois, AmapPoi.class));
+                }
+
+                @Override
+                public void onPoiItemSearched(PoiItem poiItem, int i) {
+
+                }
+            });
+            poiSearch.searchPOIAsyn();
+        } else if (call.method.equals("searchAround")) {
+            //搜索关键字
+            String lat = call.argument("lat");
+            //搜索城市名称
+            String lng = call.argument("lng");
+            //搜索城市名称
+            String distance = call.argument("distance");
+            //搜索关键字
+            String keywords = call.argument("keywords");
+            //搜索城市名称
+            String types = call.argument("types");
+            //搜索城市名称
+            String city = call.argument("city");
+            //搜索城市名称
+            int page = call.argument("page");
+            //搜索城市名称
+            int size = call.argument("size");
+            //搜索poi数据
+            PoiSearch.Query query = new PoiSearch.Query(keywords, types, city);
+            //设置每页大小
+            query.setPageSize(size);
+            //设置当前页码
+            query.setPageNum(page);
+            //创建搜索
+            PoiSearch poiSearch = new PoiSearch(context, query);
+            //设置搜索附近周边
+            poiSearch.setBound(new PoiSearch.SearchBound(new LatLonPoint(Double.parseDouble(lat),
+                    Double.parseDouble(lng)),
+                    Integer.parseInt(distance)));
+            //设置监听
+            poiSearch.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
+                @Override
+                public void onPoiSearched(PoiResult poiResult, int i) {
+                    //数据
+                    ArrayList<PoiItem> poiItems = poiResult.getPois();
+                    List<AmapPoi> pois = new ArrayList<>();
+                    if (poiItems != null)
+                        for (PoiItem item : poiItems) {
+                            AmapPoi poi = new AmapPoi();
+                            poi.setLat(item.getLatLonPoint().getLatitude());
+                            poi.setLng(item.getLatLonPoint().getLongitude());
+                            poi.setUid(item.getPoiId());
+                            poi.setName(item.getTitle());
+                            poi.setType(item.getTypeDes());
+                            poi.setTypecode(item.getTypeCode());
+                            poi.setAddress(item.getSnippet());
+                            poi.setTel(item.getTel());
+                            poi.setDistance(item.getDistance() + "");
+                            poi.setPostcode(item.getPostcode());
+                            poi.setWebsite(item.getWebsite());
+                            poi.setEmail(item.getEmail());
+                            poi.setProvince(item.getProvinceName());
+                            poi.setPcode(item.getProvinceCode());
+                            poi.setCity(item.getCityName());
+                            poi.setCitycode(item.getCityCode());
+                            poi.setDistrict(item.getAdName());
+                            poi.setAdcode(item.getAdCode());
+                            pois.add(poi);
+                        }
+                    result.success(modelToString(pois, AmapPoi.class));
+                }
+
+                @Override
+                public void onPoiItemSearched(PoiItem poiItem, int i) {
+                }
+            });
+            poiSearch.searchPOIAsyn();
         } else {
             result.notImplemented();
         }
+    }
+
+
+    //对象装json
+    private <T> String modelToString(List<T> t, Class<T> cls) {
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+        JSONArray array = new JSONArray();
+        for (int s = 0; s < t.size(); s++) {
+            try {
+                array.put(new JSONObject(gson.toJson(t.get(s), cls)));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return array.toString();
     }
 
 
@@ -205,7 +363,7 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             public void onLocationChanged(AMapLocation aMapLocation) {
                 if (aMapLocation.getErrorCode() == 0) {
                     //创建定位
-                    Location location = new Location();
+                    AmapLocation location = new AmapLocation();
                     location.setLatitude(aMapLocation.getLatitude() + "");
                     location.setLongitude(aMapLocation.getLongitude() + "");
                     location.setCity(aMapLocation.getCity());
@@ -277,7 +435,7 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                 if (aMapLocation != null) {
                     if (aMapLocation.getErrorCode() == 0) {
                         //创建定位
-                        Location location = new Location();
+                        AmapLocation location = new AmapLocation();
                         location.setLatitude(aMapLocation.getLatitude() + "");
                         location.setLongitude(aMapLocation.getLongitude() + "");
                         location.setCity(aMapLocation.getCity());

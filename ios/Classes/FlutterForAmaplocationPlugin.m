@@ -1,4 +1,5 @@
 #import "FlutterForAmaplocationPlugin.h"
+#import "MJExtension.h"
 #import "JsonTool.h"
 
 
@@ -16,7 +17,9 @@
 
 @implementation FlutterForAmaplocationPlugin
 {
-    FlutterEventSink locationEvent;
+    FlutterEventSink _locationEvent;
+    AMapSearchAPI* _amapSearch;
+    NSMutableDictionary* _searchDic;
 }
 
 //注册
@@ -53,6 +56,15 @@
         
         //设置key
         [AMapServices sharedServices].apiKey =apiKey;
+        
+        //请求列表
+        _searchDic=[[NSMutableDictionary alloc] init];
+        
+        //搜索
+        _amapSearch=[[AMapSearchAPI alloc] init];
+        
+        //设置代理
+        _amapSearch.delegate=self;
         
         //创建
         _cllManager = [CLLocationManager new];
@@ -114,7 +126,6 @@
         //   逆地理请求超时时间，最低2s，此处设置为2s
         _manager.reGeocodeTimeout = ((NSString*)call.arguments[@"reGeocodeTimeout"]).integerValue;;
         //防止循环引用
-        //定位
         [_manager  requestLocationWithReGeocode:YES completionBlock:^(CLLocation *location, AMapLocationReGeocode *regeocode, NSError *error) {
             if (error)
             {
@@ -202,9 +213,140 @@
         //成功
         result(@"1");
     }
+    //搜索关键字
+    else if([@"searchKeyword" isEqualToString:call.method]){
+        
+        //获取参数
+        NSString* keywords=(NSString*)call.arguments[@"keywords"];
+        NSString* types=(NSString*)call.arguments[@"types"];
+        NSString* city=(NSString*)call.arguments[@"city"];
+        
+        //页码大小
+        NSInteger page=((NSString*)call.arguments[@"page"]).integerValue;
+        NSInteger size=((NSString*)call.arguments[@"size"]).integerValue;
+        
+        //是否限制当前城市
+        BOOL cityLimit=((NSString*)call.arguments[@"cityLimit"]).integerValue==1?true:false;
+        
+        AMapPOIKeywordsSearchRequest *request = [[AMapPOIKeywordsSearchRequest alloc] init];
+        request.keywords            = keywords;
+        request.types               = types;
+        request.city                = city;
+        request.requireExtension    = YES;
+        
+        //设置分页
+        request.page=page;
+        request.offset=size;
+        
+        //是否限制当前城市
+        request.cityLimit=cityLimit;
+        
+        //设置object
+        [_searchDic setObject:result forKey:[NSString stringWithFormat:@"%p",request]];
+        
+        //设置
+        [_amapSearch AMapPOIKeywordsSearch:request];
+        
+    }
+    //搜索关键字
+    else if([@"searchAround" isEqualToString:call.method]){
+        
+        //获取周边定位数据
+        NSString* lat=(NSString*)call.arguments[@"lat"];
+        NSString* lng=(NSString*)call.arguments[@"lng"];
+        NSString* distance=(NSString*)call.arguments[@"distance"];
+        
+        //获取参数
+        NSString* keywords=(NSString*)call.arguments[@"keywords"];
+        NSString* types=(NSString*)call.arguments[@"types"];
+        NSString* city=(NSString*)call.arguments[@"city"];
+        
+        //页码大小
+        NSInteger page=((NSString*)call.arguments[@"page"]).integerValue;
+        NSInteger size=((NSString*)call.arguments[@"size"]).integerValue;
+        
+        //请求
+        AMapPOIAroundSearchRequest *request = [[AMapPOIAroundSearchRequest alloc] init];
+        request.keywords            = keywords;
+        request.types               = types;
+        request.city                = city;
+        request.requireExtension    = YES;
+        AMapGeoPoint* point = [AMapGeoPoint locationWithLatitude:lat.doubleValue longitude:lng.doubleValue];
+        
+        //定位的中心
+        request.location=point;
+        //设置半径
+        request.radius=distance.intValue;
+        //设置分页
+        request.page=page;
+        //设置
+        request.offset=size;
+        
+        //设置object
+        [_searchDic setObject:result forKey:[NSString stringWithFormat:@"%p",request]];
+        
+        //执行搜索
+        [_amapSearch AMapPOIAroundSearch:request];
+        
+    }
     //没有实现该方法
     else{
         result(FlutterMethodNotImplemented);
+    }
+}
+
+
+#pragma mark - AMapSearchDelegate
+/**
+ * @brief POI查询回调函数
+ * @param request  发起的请求，具体字段参考 AMapPOISearchBaseRequest 及其子类。
+ * @param response 响应结果，具体字段参考 AMapPOISearchResponse 。
+ */
+- (void)onPOISearchDone:(AMapPOISearchBaseRequest *)request response:(AMapPOISearchResponse *)response{
+    NSString* str=[NSString stringWithFormat:@"%p",request];
+    @synchronized (self) {
+        //地址对应
+        FlutterResult result=[_searchDic objectForKey:str];
+        //转换
+        NSMutableArray* jsonArray=[[NSMutableArray alloc]init];
+        for(int s=0;s<response.pois.count;s++){
+            NSMutableDictionary* dic=[[response.pois objectAtIndex:s] mj_keyValues];
+            dic[@"lat"]=[NSString stringWithFormat:@"%f",[response.pois objectAtIndex:s].location.latitude];
+            dic[@"lng"]=[NSString stringWithFormat:@"%f",[response.pois objectAtIndex:s].location.longitude];
+            [jsonArray addObject:dic];
+        }
+        //成功的数据
+        result([self arrayToJSONString:jsonArray]);
+        //地址移除
+        [_searchDic removeObjectForKey:str];
+    }
+}
+
+//数组转为json字符串
+- (NSString *)arrayToJSONString:(NSArray *)array {
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:array options:NSJSONWritingPrettyPrinted error:&error];
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    NSString *jsonTemp = [jsonString stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    return jsonTemp;
+}
+
+/**
+ * @brief 当请求发生错误时，会调用代理的此方法.
+ * @param request 发生错误的请求.
+ * @param error   返回的错误.
+ */
+- (void)AMapSearchRequest:(id)request didFailWithError:(NSError *)error{
+    NSString* str=[NSString stringWithFormat:@"%p",request];
+    @synchronized (self) {
+        //地址对应
+        FlutterResult result=[_searchDic objectForKey:str];
+        //错误
+        result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)error.code]
+                                   message:error.description
+                                   details:error.localizedDescription]);
+        //地址移除
+        [_searchDic removeObjectForKey:str];
     }
 }
 
@@ -216,7 +358,7 @@
                                        eventSink:(FlutterEventSink)events {
     // arguments flutter给native的参数
     // 回调给flutter， 建议使用实例指向，因为该block可以使用多次
-    locationEvent=events;
+    _locationEvent=events;
     return nil;
 }
 
@@ -224,7 +366,7 @@
 - (FlutterError* _Nullable)onCancelWithArguments:(id _Nullable)arguments {
     // arguments flutter给native的参数
     //清空参数
-    locationEvent=nil;
+    _locationEvent=nil;
     return nil;
 }
 
@@ -313,14 +455,13 @@
         ///门牌号
         if(regeocode.AOIName!=nil)
             dic[@"AOIName"]=regeocode.AOIName;
-        //转换为字符串
-        NSString* json=[JsonTool DicToJSONString:dic];
-        //传递持续定位的数据
-        if(locationEvent!=nil){
-            locationEvent(json);
-        }
     }
-    
+    //转换为字符串
+    NSString* json=[JsonTool DicToJSONString:dic];
+    //传递持续定位的数据
+    if(_locationEvent!=nil){
+        _locationEvent(json);
+    }
 }
 
 /**

@@ -21,19 +21,26 @@ class _MyAppState extends State<MyApp> {
   }
 
   //初始化定位系统
-  void initLocation(){
+  void initLocation() async{
 
 
     //b96df7301ed1e6cc6732b00f264ebe4f
     //进行初始化
-    //FlutterForAmaplocation.initLocation("ac9a4b50a5485069aa0ad3b712cef831");
-    FlutterForAmaplocation.initLocation("b96df7301ed1e6cc6732b00f264ebe4f");
+    FlutterForAmaplocation.initLocation("f4fbb9f6de3dfb371c4d7a51a7c06c42");
+    //FlutterForAmaplocation.initLocation("b96df7301ed1e6cc6732b00f264ebe4f");
     //获取单次的定位信息
-    Stream<Location> future= FlutterForAmaplocation.startLocation(new LocationAlwaysOption(interval: 10));
-    //获取到数据之后打印
-    future.listen((location){
-      print(location.toJson().toString());
-    });
+    // Stream<Location> future= FlutterForAmaplocation.startLocation(new LocationAlwaysOption(interval: 10));
+    // //获取到数据之后打印
+    // future.listen((location){
+    //   print(location.toJson().toString());
+    // });
+
+    // Location str =await FlutterForAmaplocation.getLocation(new LocationOneceOption());
+    // print(str.toJson());
+
+
+    List<AmapPoi> str =await FlutterForAmaplocation.searchKeyword(keywords: "金融大厦",types: "",city: "贵阳市");
+    print(str.toString());
   }
 
   @override

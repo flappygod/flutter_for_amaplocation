@@ -4,17 +4,14 @@ import 'package:flutter/services.dart';
 
 class FlutterForAmaplocation {
   //方法
-  static const MethodChannel _channel =
-  const MethodChannel('flutter_for_amaplocation');
+  static const MethodChannel _channel = const MethodChannel('flutter_for_amaplocation');
 
   //事件
-  static const _locationEventChannel =
-  EventChannel('flutter_for_amaplocation_event');
+  static const _locationEventChannel = EventChannel('flutter_for_amaplocation_event');
 
   //初始化定位
   static Future<bool> initLocation(String apiKey) async {
-    final String? flag =
-    await _channel.invokeMethod('initLocation', {"apiKey": apiKey});
+    final String? flag = await _channel.invokeMethod('initLocation', {"apiKey": apiKey});
     if (flag == null || flag == '' || int.parse(flag) == 0) {
       return false;
     }
@@ -23,7 +20,7 @@ class FlutterForAmaplocation {
 
   //获取定位
   static Future<Location> getLocation(LocationOneceOption option) async {
-    final String? jsonData = await _channel.invokeMethod('getLocation', option.toJson()) ;
+    final String? jsonData = await _channel.invokeMethod('getLocation', option.toJson());
     //解析出数据
     Location location = Location.fromJson(jsonDecode(jsonData!));
     //返回数据
@@ -49,6 +46,60 @@ class FlutterForAmaplocation {
     }
     return true;
   }
+
+  //关键字搜索POI
+  static Future<List<AmapPoi>> searchKeyword({
+    String keywords = "",
+    String types = "",
+    String city = "",
+    int page = 1,
+    int size = 10,
+    bool cityLimit = false,
+  }) async {
+    final String data = await _channel.invokeMethod('searchKeyword', {
+      "keywords": keywords,
+      "types": types,
+      "city": city,
+      "page": page,
+      "size": size,
+      "cityLimit": cityLimit ? 1 : 0,
+    });
+    //解析
+    List objects=jsonDecode(data);
+    //转换
+    return objects.map((e) {
+      return AmapPoi.fromJson(e);
+    }).toList();
+  }
+
+  //周边搜索POI
+  static Future<List<AmapPoi>> searchAround(
+    String lat,
+    String lng,
+    String distance, {
+    String keywords = "",
+    String types = "",
+    String city = "",
+    int page = 1,
+    int size = 10,
+  }) async {
+    final String data = await _channel.invokeMethod('searchAround', {
+      "lat": lat,
+      "lng": lng,
+      "distance": distance,
+      "keywords": keywords,
+      "types": types,
+      "city": city,
+      "page": page,
+      "size": size,
+    });
+    //解析
+    List objects=jsonDecode(data);
+    //转换
+    return objects.map((e) {
+      return AmapPoi.fromJson(e);
+    }).toList();
+  }
 }
 
 //定位的位置
@@ -69,18 +120,18 @@ class Location {
 
   Location(
       {this.longitude,
-        this.province,
-        this.latitude,
-        this.street,
-        this.aOIName,
-        this.formattedAddress,
-        this.city,
-        this.citycode,
-        this.district,
-        this.adcode,
-        this.number,
-        this.country,
-        this.pOIName});
+      this.province,
+      this.latitude,
+      this.street,
+      this.aOIName,
+      this.formattedAddress,
+      this.city,
+      this.citycode,
+      this.district,
+      this.adcode,
+      this.number,
+      this.country,
+      this.pOIName});
 
   Location.fromJson(Map<String, dynamic> json) {
     longitude = json['longitude'];
@@ -141,10 +192,10 @@ class LocationAlwaysOption {
 
   LocationAlwaysOption(
       {this.distanceFilter: 200,
-        this.locationMode: Battery_Saving,
-        this.interval: 30,
-        this.locatingWithReGeocode: true,
-        this.allowsBackgroundLocationUpdates: false});
+      this.locationMode: Battery_Saving,
+      this.interval: 30,
+      this.locatingWithReGeocode: true,
+      this.allowsBackgroundLocationUpdates: false});
 
   LocationAlwaysOption.fromJson(Map<String, dynamic> json) {
     distanceFilter = json['distanceFilter'];
@@ -160,8 +211,7 @@ class LocationAlwaysOption {
     data['locationMode'] = this.locationMode;
     data['interval'] = this.interval;
     data['locatingWithReGeocode'] = this.locatingWithReGeocode;
-    data['allowsBackgroundLocationUpdates'] =
-        this.allowsBackgroundLocationUpdates;
+    data['allowsBackgroundLocationUpdates'] = this.allowsBackgroundLocationUpdates;
     return data;
   }
 }
@@ -186,10 +236,7 @@ class LocationOneceOption {
   //逆地理定位超时时间
   int? reGeocodeTimeout;
 
-  LocationOneceOption(
-      {this.locationType: 4,
-        this.locationTimeout: 2,
-        this.reGeocodeTimeout: 2});
+  LocationOneceOption({this.locationType: 4, this.locationTimeout: 2, this.reGeocodeTimeout: 2});
 
   LocationOneceOption.fromJson(Map<String, dynamic> json) {
     locationType = json['locationType'];
@@ -202,6 +249,108 @@ class LocationOneceOption {
     data['locationType'] = this.locationType;
     data['locationTimeout'] = this.locationTimeout;
     data['reGeocodeTimeout'] = this.reGeocodeTimeout;
+    return data;
+  }
+}
+
+class AmapPoi {
+  String? distance;
+  String? city;
+  String? pcode;
+  String? type;
+  String? gridcode;
+  String? typecode;
+  String? uid;
+  String? province;
+  String? citycode;
+  String? tel;
+  String? lat;
+  String? email;
+  String? direction;
+  String? parkingtype;
+  String? website;
+  String? address;
+  String? lng;
+  String? adcode;
+  String? postcode;
+  String? businessarea;
+  String? district;
+  String? name;
+
+  AmapPoi({
+    this.distance,
+    this.city,
+    this.pcode,
+    this.type,
+    this.gridcode,
+    this.typecode,
+    this.uid,
+    this.province,
+    this.citycode,
+    this.tel,
+    this.lat,
+    this.email,
+    this.direction,
+    this.parkingtype,
+    this.website,
+    this.address,
+    this.lng,
+    this.adcode,
+    this.postcode,
+    this.businessarea,
+    this.district,
+    this.name,
+  });
+
+  AmapPoi.fromJson(Map<String, dynamic> json) {
+    distance = json['distance']?.toString();
+    city = json['city']?.toString();
+    pcode = json['pcode']?.toString();
+    type = json['type']?.toString();
+    gridcode = json['gridcode']?.toString();
+    typecode = json['typecode']?.toString();
+    uid = json['uid']?.toString();
+    province = json['province']?.toString();
+    citycode = json['citycode']?.toString();
+    tel = json['tel']?.toString();
+    lat = json['lat']?.toString();
+    email = json['email']?.toString();
+    direction = json['direction']?.toString();
+    parkingtype = json['parkingType']?.toString();
+    website = json['website']?.toString();
+    address = json['address']?.toString();
+    lng = json['lng']?.toString();
+    adcode = json['adcode']?.toString();
+    postcode = json['postcode']?.toString();
+    businessarea = json['businessArea']?.toString();
+    district = json['district']?.toString();
+    name = json['name']?.toString();
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['distance'] = this.distance;
+    data['city'] = this.city;
+    data['pcode'] = this.pcode;
+    data['type'] = this.type;
+    data['gridcode'] = this.gridcode;
+    data['typecode'] = this.typecode;
+    data['uid'] = this.uid;
+    data['province'] = this.province;
+    data['citycode'] = this.citycode;
+    data['tel'] = this.tel;
+    data['lat'] = this.lat;
+    data['email'] = this.email;
+    data['direction'] = this.direction;
+    data['parkingType'] = this.parkingtype;
+    data['website'] = this.website;
+    data['address'] = this.address;
+    data['lng'] = this.lng;
+    data['adcode'] = this.adcode;
+    data['postcode'] = this.postcode;
+    data['businessArea'] = this.businessarea;
+    data['district'] = this.district;
+    data['name'] = this.name;
     return data;
   }
 }

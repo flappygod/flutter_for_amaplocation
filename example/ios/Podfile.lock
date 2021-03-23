@@ -2,10 +2,15 @@ PODS:
   - AMapFoundation-NO-IDFA (1.6.5.1)
   - AMapLocation-NO-IDFA (2.6.7):
     - AMapFoundation-NO-IDFA (~> 1.6.4)
+  - AMapSearch-NO-IDFA (7.7.0):
+    - AMapFoundation-NO-IDFA (~> 1.6.4)
   - Flutter (1.0.0)
   - flutter_for_amaplocation (0.0.1):
     - AMapLocation-NO-IDFA (= 2.6.7)
+    - AMapSearch-NO-IDFA (= 7.7.0)
     - Flutter
+    - MJExtension
+  - MJExtension (3.2.2)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -15,6 +20,8 @@ SPEC REPOS:
   trunk:
     - AMapFoundation-NO-IDFA
     - AMapLocation-NO-IDFA
+    - AMapSearch-NO-IDFA
+    - MJExtension
 
 EXTERNAL SOURCES:
   Flutter:
@@ -25,8 +32,10 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AMapFoundation-NO-IDFA: 0cf5f6c6de2725bcd868ed5aa756d12bc1a8f463
   AMapLocation-NO-IDFA: 2a3edfee336b38481b892e1ecc85df0f6b365851
+  AMapSearch-NO-IDFA: 061479dd567486fb59bf3d01b1076c81d910f1b6
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
-  flutter_for_amaplocation: f431e39fdd0cae022a98d1ee583fb41e62681c9d
+  flutter_for_amaplocation: 83509dc9f19ea3bca6f3dfa28ec5d12519c54e9d
+  MJExtension: d9b9c74cbdeb724c1e9ecbb157b318276e62e876
 
 PODFILE CHECKSUM: 8e679eca47255a8ca8067c4c67aab20e64cb974d
 
