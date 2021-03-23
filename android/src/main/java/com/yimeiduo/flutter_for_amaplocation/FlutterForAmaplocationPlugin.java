@@ -61,8 +61,6 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
     //声明AMapLocationClient类对象
     public AMapLocationClient locationClient = null;
 
-    //当前是否初始化
-    private boolean inited = false;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -132,15 +130,15 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             String apiKey = call.argument("apiKey");
             //设置Apikey
             AMapLocationClient.setApiKey(apiKey);
-            //已经初始化了
-            inited = true;
+            //创建locationClient
+            locationClient = new AMapLocationClient(context);
             //成功
             result.success("1");
             //成功
             return;
         }
         //初始化
-        if (!inited) {
+        if (locationClient == null) {
             result.error("-100", "not init location", "not init location");
             return;
         }
@@ -188,28 +186,19 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
         //获取location
         else if (call.method.equals("stopLocation")) {
             //停止定位
-            locationStop();
+            locationClient.stopLocation();
             result.success("1");
         } else {
             result.notImplemented();
         }
     }
 
-    //结束定位
-    private void locationStop() {
-        if (locationClient != null) {
-            locationClient.stopLocation();
-        }
-    }
 
     //开始定位
     private void locationStart(int distanceFilter,
                                int interval,
                                int locationMode,
                                final Result result) {
-        if (locationClient == null) {
-            locationClient = new AMapLocationClient(context);
-        }
         //声明定位回调监听器
         AMapLocationListener mLocationListener = new AMapLocationListener() {
             @Override
