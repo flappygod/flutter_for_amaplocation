@@ -71,7 +71,7 @@
     }
     
     //没有初始化
-    if(_cllManager==nil){
+    if(_manager==nil){
         result([FlutterError errorWithCode:[NSString stringWithFormat:@"%ld",(long)-100] message:@"location not init" details:@"location not init"]);
         return;
     }
