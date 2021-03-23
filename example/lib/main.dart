@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
 
     //b96df7301ed1e6cc6732b00f264ebe4f
     //进行初始化
-    FlutterForAmaplocation.initLocation("f4fbb9f6de3dfb371c4d7a51a7c06c42");
+    FlutterForAmaplocation.initLocation("88b9df0e69bcc4c743d8dadccc60efe6");
     //FlutterForAmaplocation.initLocation("b96df7301ed1e6cc6732b00f264ebe4f");
     //获取单次的定位信息
     // Stream<Location> future= FlutterForAmaplocation.startLocation(new LocationAlwaysOption(interval: 10));

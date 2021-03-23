@@ -213,8 +213,10 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             int page = call.argument("page");
             //搜索城市名称
             int size = call.argument("size");
+            //最小
+            int cityLimitInt=call.argument("cityLimit");
             //搜索城市名称
-            boolean cityLimit = call.argument("cityLimit");
+            boolean cityLimit = cityLimitInt ==1 ?true:false;
             //搜索poi数据
             PoiSearch.Query query = new PoiSearch.Query(keywords, types, city);
             //设置每页大小
