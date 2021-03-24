@@ -214,9 +214,9 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             //搜索城市名称
             int size = call.argument("size");
             //最小
-            int cityLimitInt=call.argument("cityLimit");
+            int cityLimitInt = call.argument("cityLimit");
             //搜索城市名称
-            boolean cityLimit = cityLimitInt ==1 ?true:false;
+            boolean cityLimit = cityLimitInt == 1 ? true : false;
             //搜索poi数据
             PoiSearch.Query query = new PoiSearch.Query(keywords, types, city);
             //设置每页大小
@@ -225,6 +225,8 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             query.setPageNum(page);
             //限制城市
             query.setCityLimit(cityLimit);
+            //返回全部
+            query.setExtensions(PoiSearch.EXTENSIONS_ALL);
             //创建搜索
             PoiSearch poiSearch = new PoiSearch(context, query);
             //设置监听
@@ -289,6 +291,8 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             query.setPageSize(size);
             //设置当前页码
             query.setPageNum(page);
+            //返回全部
+            query.setExtensions(PoiSearch.EXTENSIONS_ALL);
             //创建搜索
             PoiSearch poiSearch = new PoiSearch(context, query);
             //设置搜索附近周边
