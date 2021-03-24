@@ -216,7 +216,7 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             //最小
             int cityLimitInt = call.argument("cityLimit");
             //搜索城市名称
-            boolean cityLimit = cityLimitInt == 1 ? true : false;
+            boolean cityLimit = (cityLimitInt == 1) ? true : false;
             //搜索poi数据
             PoiSearch.Query query = new PoiSearch.Query(keywords, types, city);
             //设置每页大小
@@ -233,11 +233,11 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
             poiSearch.setOnPoiSearchListener(new PoiSearch.OnPoiSearchListener() {
                 @Override
                 public void onPoiSearched(PoiResult poiResult, int i) {
-                    //数据
-                    ArrayList<PoiItem> poiItems = poiResult.getPois();
+                    //返回
                     List<AmapPoi> pois = new ArrayList<>();
-                    if (poiItems != null)
-                        for (PoiItem item : poiItems) {
+                    //获取返回结果
+                    if (poiResult != null && poiResult.getPois() != null) {
+                        for (PoiItem item : poiResult.getPois()) {
                             AmapPoi poi = new AmapPoi();
                             poi.setLat(item.getLatLonPoint().getLatitude());
                             poi.setLng(item.getLatLonPoint().getLongitude());
@@ -259,6 +259,7 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                             poi.setAdcode(item.getAdCode());
                             pois.add(poi);
                         }
+                    }
                     result.success(modelToString(pois, AmapPoi.class));
                 }
 
@@ -304,10 +305,10 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                 @Override
                 public void onPoiSearched(PoiResult poiResult, int i) {
                     //数据
-                    ArrayList<PoiItem> poiItems = poiResult.getPois();
                     List<AmapPoi> pois = new ArrayList<>();
-                    if (poiItems != null)
-                        for (PoiItem item : poiItems) {
+                    //获取返回结果
+                    if (poiResult != null && poiResult.getPois() != null) {
+                        for (PoiItem item : poiResult.getPois()) {
                             AmapPoi poi = new AmapPoi();
                             poi.setLat(item.getLatLonPoint().getLatitude());
                             poi.setLng(item.getLatLonPoint().getLongitude());
@@ -329,11 +330,13 @@ public class FlutterForAmaplocationPlugin implements FlutterPlugin, MethodCallHa
                             poi.setAdcode(item.getAdCode());
                             pois.add(poi);
                         }
+                    }
                     result.success(modelToString(pois, AmapPoi.class));
                 }
 
                 @Override
                 public void onPoiItemSearched(PoiItem poiItem, int i) {
+
                 }
             });
             poiSearch.searchPOIAsyn();
