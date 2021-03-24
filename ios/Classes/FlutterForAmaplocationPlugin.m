@@ -228,6 +228,7 @@
         //是否限制当前城市
         BOOL cityLimit=((NSString*)call.arguments[@"cityLimit"]).integerValue==1?true:false;
         
+        //创建搜索请求
         AMapPOIKeywordsSearchRequest *request = [[AMapPOIKeywordsSearchRequest alloc] init];
         request.keywords            = keywords;
         request.types               = types;
@@ -265,7 +266,7 @@
         NSInteger page=((NSString*)call.arguments[@"page"]).integerValue;
         NSInteger size=((NSString*)call.arguments[@"size"]).integerValue;
         
-        //请求
+        //创建搜索请求
         AMapPOIAroundSearchRequest *request = [[AMapPOIAroundSearchRequest alloc] init];
         request.keywords            = keywords;
         request.types               = types;
